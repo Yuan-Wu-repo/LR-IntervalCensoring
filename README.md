@@ -10,4 +10,4 @@ Includes functions for:
 - Generating the knot sequence for B-splines (or I-splines)
 
 
-The simulation script aims to compare our proposed likelihood ratio test and the Wald test. 
+The simulation script aims to compare <b>our proposed likelihood ratio (LR) testing approach</b> and the existing Wald testing approaches. 
