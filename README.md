@@ -1,4 +1,4 @@
-This project contains R functions and a simulation script for the analysis of the Cox PH model with interval-censored data.
+This project contains R functions and a simulation script for the analysis of <b>the Cox PH model with interval-censored data</b>.
 
 
 Includes functions for:
