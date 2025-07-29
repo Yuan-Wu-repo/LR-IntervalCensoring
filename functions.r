@@ -1,6 +1,3 @@
-
-
-
 ############################ the log likelihood function #############
 loglike <- function(eta)
 {
