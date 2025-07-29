@@ -1,4 +1,4 @@
-############################ the log likelihood function #####################
+############################ the log likelihood function ######################
 loglike <- function(eta)
 {
 	eta <- matrix(c(eta), (n.total),1)
