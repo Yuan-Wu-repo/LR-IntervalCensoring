@@ -5,7 +5,7 @@ Includes functions for:
 
 - Estimating the Sieve spline-based MLE of the Cox regression parameters and the hazard function
 
-- Estimating the variance of the MLE of the Cox regression parameters using both Zhang et al. (2010) and ICsurv approaches
+- Estimating the variance of the MLE of the Cox regression parameters using two existing approaches
 
 - Generating the knot sequence for B-splines (or I-splines)
 
