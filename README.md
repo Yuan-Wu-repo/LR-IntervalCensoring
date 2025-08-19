@@ -12,4 +12,4 @@ The following tasks are facilitated by the functions included.
 
 The script for the simulation aims to compare <b>our proposed likelihood ratio (LR) testing approach</b> and the existing Wald testing approaches. 
 
-The script for the hemophilia data applies different testing approaches analyzing this public available data set.
+The script for the <b>hemophilia data</b> applies different testing approaches analyzing this public available data set.
