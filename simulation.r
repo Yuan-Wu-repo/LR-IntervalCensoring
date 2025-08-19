@@ -236,6 +236,8 @@ for (run_index in 1 : run)	{
 	diag.inv <- apply(rbind(diag(ginv(hat_O)), rep(0, n.variable)), 2, max)
 	se<-sqrt(diag.inv / size)	
 	sematrix[, run_index] <- se
+	
+	
 
 	if ((etamatrix[(n.spline + 1), run_index] + qnorm(0.975, 0, 1) * sematrix[1, run_index] >= 0)&
 		(etamatrix[(n.spline + 1), run_index] - qnorm(0.975, 0, 1) * sematrix[1, run_index] <= 0))
