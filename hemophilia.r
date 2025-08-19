@@ -11,6 +11,9 @@ data(Hemophilia)
 delta1 <- Hemophilia$d1
 delta2 <- Hemophilia$d2
 delta3 <- Hemophilia$d3
+size <- dim(Hemophilia)[1]
+ctu <- rep(0, size)
+ctv <- rep(0, size)
 ctu[delta1 == 1] <- Hemophilia$R[delta1 == 1]
 ctv[delta1 == 1] <- ctu[delta1 == 1] + 0.001
 ctu[delta2 == 1] <- Hemophilia$L[delta2 == 1]
@@ -34,7 +37,6 @@ Ri <- Hemophilia$R
 Xp <- cbind(Hemophilia$Low, Hemophilia$Medium, Hemophilia$High)
 
 n.variable <- 3
-size <- dim(Hemophilia)[1]
 n.spline <- 11
 spline.ord <- 4
 
