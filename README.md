@@ -1,4 +1,4 @@
-This project comprehensively studies the analysis of <b>the Cox PH model with interval-censored data</b>. 
+This project comprehensively studies the analysis of the interval-censored data under the Cox proportional hazards model</b>. 
 
 
 The following tasks are facilitated by the functions included.
