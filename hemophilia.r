@@ -22,13 +22,6 @@ ctv[delta3 == 1] <- Hemophilia$L[delta3 == 1]
 ctu[delta3 == 1] <- ctv[delta3 == 1] - 0.001
 z <- rbind(Hemophilia$Low, Hemophilia$Medium, Hemophilia$High)
 
-newt <- rep(0, size)
-newt[delta1 == 1] <- ctu[delta1 == 1] / 2
-newt[delta2 == 1] <- (ctu[delta2 == 1] + ctv[delta2 == 1]) / 2
-newt[delta3 == 1] <- ctv[delta3 == 1]
-newdelta <- rep(0, size)
-newdelta[delta1 == 1 | delta2 == 1] <- 1
-
 d1 <- Hemophilia$d1
 d2 <- Hemophilia$d2
 d3 <- Hemophilia$d3
@@ -40,50 +33,7 @@ n.variable <- 3
 n.spline <- 11
 spline.ord <- 4
 
-###################################
-##### naive convering method ######
-###################################
-fitnaive <- coxph(Surv(newt, newdelta) ~ z[1,] + z[2,] + z[3,], method="breslow", init = c(0, 0, 0))
-### to avoid diag(fitnaive$var) has negative components, when it is negative let it be 0
-diagnaive <- apply(rbind(diag(fitnaive$var), rep(0, n.variable)), 2, max)
-
-fitcoef <- c(fitnaive$coef)
-fitvar <- c(fitnaive$var)
-
-#### note that loglik[2] is the loglikelihood for final coefficients
-loglikefull.naive <- fitnaive$loglik[2]
-
-### Wald test p-value for each variable among Low, Medium, High being 0
-2*pnorm(abs(fitcoef[1]/sqrt(diagnaive)[1]), mean=0, sd=1, lower.tail = FALSE)
-2*pnorm(abs(fitcoef[2]/sqrt(diagnaive)[2]), mean=0, sd=1, lower.tail = FALSE)
-2*pnorm(abs(fitcoef[3]/sqrt(diagnaive)[3]), mean=0, sd=1, lower.tail = FALSE)
-	
-### Wald test p-value for all variables being 0
-pchisq(q = t(fitcoef) %*% ginv(fitnaive$var) %*% fitcoef, df = 3, lower.tail = FALSE)
-
-### partial coeffcients cox regression	
-fitnaive <- coxph(Surv(newt, newdelta) ~  z[2,] + z[3,], method="breslow")
-loglikepart1.naive <- fitnaive$loglik[2]
-fitnaive <- coxph(Surv(newt, newdelta) ~  z[1,] + z[3,], method="breslow")
-loglikepart2.naive <- fitnaive$loglik[2]
-fitnaive <- coxph(Surv(newt, newdelta) ~  z[1,] + z[2,], method="breslow")
-loglikepart3.naive <- fitnaive$loglik[2]
-
-## likelihood ratio test p-value for each variable among Low, Medium, High being 0
-pchisq(q = 2 * (loglikefull.naive - loglikepart1.naive), df = 1, lower.tail = FALSE) 
-pchisq(q = 2 * (loglikefull.naive - loglikepart2.naive), df = 1, lower.tail = FALSE)
-pchisq(q = 2 * (loglikefull.naive - loglikepart3.naive), df = 1, lower.tail = FALSE)
-
-### Likelihood ratio test p-value for all variable being 0
-summary(fitnaive)$logtest[3]
-############## end naive converting method #################
-
-#######################################
-#### interval censoring method ########
-#######################################
-
-############## unconstrained R function for finding optimization point
-	
+###############################################################################################
 knotb <- get_knots(ctu, ctv, delta1, delta2, delta3)
 ### bspline results		 
 bspu <- t(splineDesign(knots = knotb, x = ctu, ord = spline.ord))
@@ -113,9 +63,13 @@ if (index == 0) {
 	 fixsubx <- matrix(0, 1, size)
 	 n.total <- n.spline + n.variable		 
 }	 	
+
+############## unconstrained R function for finding optimization point  ######
 out <- optim(par = rep(0, (n.variable + n.spline)), fn = loglike, gr = gradient, method = "BFGS", control = list(reltol = 1e-20))
 betaest <- out$par[(n.spline+1) : (n.spline+n.variable)]
-		
+#####################################################################################################
+
+######################################################################################################		
 #### variance based on theory from Huang et al. (2008) or Zhang et al. (2010)'s least square approach 
 hat_O <- observ.beta(out$par) - observ.beta.lambda(out$par) %*% ginv(observ.lambda(out$par)) %*% t(observ.beta.lambda(out$par))
 
@@ -131,8 +85,10 @@ se<-sqrt(diag.inv / size)
 	
 ### Wald test p-value for all variables being 0
 pchisq(q = t(betaest) %*% hat_O %*% betaest * size, df = 3, lower.tail = FALSE)
-	
-#### beta estimation and wald tests using ICsurv package 
+###################################################################################################
+
+###################################################################################################
+#### beta and variance estimation using ICsurv package 
 fitsemi <- PH.ICsurv.EM(d1, d2, d3, Li, Ri, Xp, n.int = n.spline-3, order = spline.ord-1, g0 = rep(1,n.spline), b0 = rep(0,n.variable), t.seq = seq (0,57,1), tol = 0.001)
 
 #### to avoid diag(fitnaive$var) has negative components, when it is negative let it be 0
@@ -145,9 +101,11 @@ diagvar.b <- apply(rbind(diag(fitsemi$var.b), rep(0, n.variable)), 2, max)
 
 ### Wald test p-value for all variables being 0
 pchisq(q = t(fitsemi$b) %*% ginv(fitsemi$var.b) %*% fitsemi$b, df = 3, lower.tail = FALSE)
+####################################################################################################
 
-##### likelihood ratio approach for sieve estimation 
-## loglikelihood for full model
+##################################################################################################
+##### likelihood ratio approach for sieve estimation #########
+## loglikelihood for full model#########
 loglikefull <- loglike(out$par)
  
 index <- 1
@@ -193,5 +151,5 @@ loglikenull <- loglike(out$par)
 
 ## likelihood ratio test for all variables being 0
 pchisq(q = -2 * (loglikefull - loglikenull), df = 3, lower.tail = FALSE) 
-#### end of interval censoring approach ####
+#######################################################################################
 			
