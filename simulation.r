@@ -15,40 +15,25 @@ spline.ord <- 4
 spline.degree <- 3
 
 etamatrix <- matrix(0,(n.variable+n.spline),run)
-estnaive <- matrix(0, n.variable, run)
 
-senaive<-matrix(0, n.variable, run)
 knotmatrix<-matrix(0,(n.spline + spline.degree),run)
 sematrix <- matrix(0, n.variable, run)
-
+icsurvse <- matrix(0, n.variable, run)
 
 cover.wald1 <- 0
 cover.wald2 <- 0
 cover.wald3 <- 0
 cover.wald.whole <- 0
 
-cover.lr1 <- 0
-cover.lr2 <- 0
-cover.lr3 <- 0
-cover.lr.whole <- 0
-
-cover1n <- 0
-cover2n <- 0
-cover3n <- 0
-coverwholen <- 0
-
-cover.lr1n <- 0
-cover.lr2n <- 0
-cover.lr3n <- 0
-cover.lrn.whole <- 0
-
-
-icsurvse <- matrix(0, n.variable, run)
-
 cover.icsurv1 <- 0
 cover.icsurv2 <- 0
 cover.icsurv3 <- 0
 cover.icsurv.whole <- 0
+
+cover.lr1 <- 0
+cover.lr2 <- 0
+cover.lr3 <- 0
+cover.lr.whole <- 0
 
 
 for (run_index in 1 : run)	{
@@ -108,76 +93,6 @@ for (run_index in 1 : run)	{
 	}	
 
 	}	
-
-
-	
-	
-	###################################naive method using survival package###########################
-	newt <- rep(0, size)
-	newt[delta1 == 1] <- ctu[delta1 == 1] / 2
-	newt[delta2 == 1] <- (ctu[delta2 == 1] + ctv[delta2 == 1]) / 2
-	newt[delta3 == 1] <- ctv[delta3 == 1]
-	newdelta <- rep(0, size)
-	newdelta[delta1 == 1 | delta2 == 1] <- 1
-
-	fitnaive <- coxph(Surv(newt, newdelta) ~ z[1,] + z[2,] + z[3,], method="breslow", init = c(0, 0, 0))
-	### to avoid diag(fitnaive$var) has negative components, when it is negative let it be 0
-	diagnaive <- apply(rbind(diag(fitnaive$var), rep(0, n.variable)), 2, max)
-			
-	fitcoef <- c(fitnaive$coef)
-
-	if ((fitcoef[1] + qnorm(0.975, 0, 1) * sqrt(diagnaive)[1] >= 0) &
-		(fitcoef[1] - qnorm(0.975, 0, 1) * sqrt(diagnaive)[1] <= 0))				
-		cover1n <- cover1n + 1
-		
-	if ((fitcoef[2] + qnorm(0.975, 0, 1) * sqrt(diagnaive)[2] >= 0) &
-		(fitcoef[2] - qnorm(0.975, 0, 1) * sqrt(diagnaive)[2] <= 0))				
-		cover2n <- cover2n + 1
-		
-	if ((fitcoef[3] + qnorm(0.975, 0, 1) * sqrt(diagnaive)[3] >= 0) &
-		(fitcoef[3] - qnorm(0.975, 0, 1) * sqrt(diagnaive)[3] <= 0))				
-		cover3n <- cover3n + 1	
-
-	# whole Wald test based on naive converting
-	if(pchisq(q = t(fitcoef) %*% ginv(fitnaive$var) %*% 
-				  fitcoef, df = 3, lower.tail = FALSE) > 0.05)
-		coverwholen <- coverwholen + 1 
-
-	estnaive[, run_index] <- fitcoef
-	senaive[, run_index] <- sqrt(diagnaive)
-
-	### likelihood ratio test for naive method
-	# likelihood ratio test based on naive converting for beta=0	
-	if(summary(fitnaive)$logtest[3] > 0.05)
-		cover.lrn.whole <- cover.lrn.whole + 1 	
-		
-	### note that loglik[2] is the loglikelihood for final coefficients	
-	loglikefull.naive <- fitnaive$loglik[2]
-
-	### partial coeffcients cox regression
-	fitnaive <- coxph(Surv(newt, newdelta) ~  z[2,] + z[3,], method="breslow")
-
-	loglikepart1.naive <- fitnaive$loglik[2]
-
-	fitnaive <- coxph(Surv(newt, newdelta) ~  z[1,] + z[3,], method="breslow")
-
-	loglikepart2.naive <- fitnaive$loglik[2]
-
-	fitnaive <- coxph(Surv(newt, newdelta) ~  z[1,] + z[2,], method="breslow")
-
-	loglikepart3.naive <- fitnaive$loglik[2]
-
-	## likelihood ratio test for three parameters for naive method
-	if(pchisq(q = 2 * (loglikefull.naive - loglikepart1.naive), df = 1, lower.tail = FALSE) > 0.05)
-		cover.lr1n <- cover.lr1n + 1
-		
-	if(pchisq(q = 2 * (loglikefull.naive - loglikepart2.naive), df = 1, lower.tail = FALSE) > 0.05)
-		cover.lr2n <- cover.lr2n + 1
-		
-	if(pchisq(q = 2 * (loglikefull.naive - loglikepart3.naive), df = 1, lower.tail = FALSE) > 0.05)
-		cover.lr3n <- cover.lr3n + 1
-	############## end naive method ################################################
-
 
 
 	#### start sieve interval censoring method #############
@@ -432,18 +347,10 @@ se.mean
 se.ICsurv.mean <- rowMeans(icsurvse)
 se.ICsurv.mean
 
-estnaivemean <- rowMeans(estnaive)
-estnaivemean
-
-senaivemean <- rowMeans(senaive)
-senaivemean
-
 c(sd(etamatrix[(n.spline + 1),]),
   sd(etamatrix[(n.spline + 2),]),
   sd(etamatrix[(n.spline + 3),]))
   
-
-
 run - c(cover.wald1, cover.wald2, cover.wald3)
 run - cover.wald.whole
 
@@ -453,8 +360,3 @@ run - cover.icsurv.whole
 run - c(cover.lr1, cover.lr2, cover.lr3)
 run - cover.lr.whole
 
-run - c(cover1n, cover2n, cover3n)
-run - coverwholen
-
-run - c(cover.lr1n, cover.lr2n, cover.lr3n)
-run - cover.lrn.whole
