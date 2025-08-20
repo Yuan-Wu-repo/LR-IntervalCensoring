@@ -14,4 +14,4 @@ The script <b>simulaiton.r</b> aims to compare <b>our proposed likelihood ratio 
 
 The script <b>hemophilia.r</b> applies different testing approaches analyzing this public available data set.
 
-The script <b>UMvsICsurv</b> compares the computing time and estimation bias between <b>the proposed unconstrained maximization (UM)</b> and <b>the EM algorithm adopted in ICsurv package</b>.
+The script <b>UMvsICsurv.r</b> compares the computing time and estimation bias between <b>the proposed unconstrained maximization (UM)</b> and <b>the EM algorithm adopted in ICsurv package</b>.
