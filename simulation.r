@@ -9,14 +9,13 @@ source("functions.R")
 n.variable <- 3
 size <- 50
 n.spline <- 6
-run <- 1000
+run <- 100
 lambda<- 1
 spline.ord <- 4
 spline.degree <- 3
 
-etamatrix <- matrix(0,(n.variable+n.spline),run)
-
 knotmatrix<-matrix(0,(n.spline + spline.degree),run)
+etamatrix <- matrix(0,(n.variable+n.spline),run)
 sematrix <- matrix(0, n.variable, run)
 icsurvse <- matrix(0, n.variable, run)
 
@@ -35,11 +34,9 @@ cover.lr2 <- 0
 cover.lr3 <- 0
 cover.lr.whole <- 0
 
-
 for (run_index in 1 : run)	{
 	
 	cat("\n", "\n", "\n", "run_index=",run_index) 
-
 
 	z1<-runif(size, 0, 1)		  
 	z2<-rnorm(size, 0, 1)
@@ -55,45 +52,40 @@ for (run_index in 1 : run)	{
 	t<-(log(u) * (-1 / lambda) * c(exp(-t(beta0) %*% z)))^2
 	
 	delta1 <- rep(0, size)		
-
 	delta2 <- rep(0, size)
-
 	delta3 <- rep(0, size)		  
 
 	ctu <- rep(0, size)
-
 	ctv <- rep(0 ,size)
 
 	for (ind in 1 : size) {
-	
-	preuv <- rexp(2, 0.5)
-	if (t[ind] <= 5)
-	{
-		if (t[ind] <= min(preuv)) {
-			delta1[ind] <- 1
-			ctu[ind] <- min(min(preuv), 5)
-			ctv[ind] <- ctu[ind] + 10^(-8)
-		} else {
-			if (t[ind] > min(preuv) & t[ind] <= max(preuv)) {
-			delta2[ind] <- 1
-			ctu[ind] <- max(preuv[preuv < t[ind]])
-			ctv[ind] <- min(min(preuv[preuv >= t[ind]]), 5)
-			} else {										
-				if (t[ind] > max(preuv)) {
-					delta3[ind] <- 1
-					ctv[ind] <- max(preuv)
-					ctu[ind] <- ctv[ind] - 10^(-8)
-				}
-			}			
-		}	
-	} else {
-		delta3[ind] <- 1
-		ctv[ind] <- min(max(preuv), 5)
-		ctu[ind] <- ctv[ind] - 10^(-8)
-	}	
+    preuv <- rexp(2, 0.5)
+    if (t[ind] <= 5)
+    {
+    	if (t[ind] <= min(preuv)) {
+    		delta1[ind] <- 1
+    		ctu[ind] <- min(min(preuv), 5)
+    		ctv[ind] <- ctu[ind] + 10^(-8)
+    	} else {
+    		if (t[ind] > min(preuv) & t[ind] <= max(preuv)) {
+    		delta2[ind] <- 1
+    		ctu[ind] <- max(preuv[preuv < t[ind]])
+    		ctv[ind] <- min(min(preuv[preuv >= t[ind]]), 5)
+    		} else {										
+    			if (t[ind] > max(preuv)) {
+    				delta3[ind] <- 1
+    				ctv[ind] <- max(preuv)
+    				ctu[ind] <- ctv[ind] - 10^(-8)
+    			}
+    		}			
+    	}	
+    } else {
+    	delta3[ind] <- 1
+    	ctv[ind] <- min(max(preuv), 5)
+    	ctu[ind] <- ctv[ind] - 10^(-8)
+    }	
 
 	}	
-
 
 	#### start sieve interval censoring method #############
 	knotb <- get_knots(ctu, ctv, delta1, delta2, delta3)
@@ -102,22 +94,16 @@ for (run_index in 1 : run)	{
 	bspu <- t(splineDesign(knots = knotb, x = ctu, ord = 4))
 	### from bspline to ispline  
 	pre.ispu <- apply(bspu, 2, rev)
-
 	ispu <- apply(pre.ispu, 2, cumsum)
-
 	ispu <- apply(ispu, 2 ,rev)
-
 	ispu <- ispu[-1,]
 
 	### bspline results
 	bspv <- t(splineDesign(knots = knotb, x = ctv, ord = 4))
 	### from bspline to ispline  
 	pre.ispv <- apply(bspv, 2, rev)
-
 	ispv <- apply(pre.ispv, 2, cumsum)
-
 	ispv <- apply(ispv, 2, rev)
-
 	ispv <- ispv[-1,]
 
 	## create vecters of 1s with length of the numbers of left, interval and right censored###
@@ -126,33 +112,27 @@ for (run_index in 1 : run)	{
 	number.ones3 <- matrix(1, 1, sum(delta3))
 	
 	oldz <- z	  
-	  
 	index <- 0			
-	  
-	  if (index == 0) {
-		 z <- oldz
-		 fixsubx <- matrix(0, 1, size)
-		 n.total <- n.spline + n.variable		 
-	  }	 
+  if (index == 0) {
+	 z <- oldz
+	 fixsubx <- matrix(0, 1, size)
+	 n.total <- n.spline + n.variable		 
+  }	 
 
 	############################################################################
 	############## unconstrained R function for finding minimum point ##########
 	############################################################################		
 	out <- optim(par = rep(0, (n.variable + n.spline)), fn = loglike, gr = gradient, method = "BFGS", control = list(reltol = 1e-20))
-
 	etamatrix[,run_index]<-out$par
 			
 	###############################################################################################################
 	#### variance based on theory from Huang et al. (2008) or Zhang et al. (2010)'s least square approach ##########
 	hat_O <- observ.beta(out$par) - observ.beta.lambda(out$par) %*% ginv(observ.lambda(out$par)) %*% t(observ.beta.lambda(out$par))
 
-
 	### to avoid diag(ginv(hat_O)) has negative components, when it is negative let it be 0
 	diag.inv <- apply(rbind(diag(ginv(hat_O)), rep(0, n.variable)), 2, max)
 	se<-sqrt(diag.inv / size)	
 	sematrix[, run_index] <- se
-	
-	
 
 	if ((etamatrix[(n.spline + 1), run_index] + qnorm(0.975, 0, 1) * sematrix[1, run_index] >= 0)&
 		(etamatrix[(n.spline + 1), run_index] - qnorm(0.975, 0, 1) * sematrix[1, run_index] <= 0))
@@ -175,57 +155,37 @@ for (run_index in 1 : run)	{
 
 	############## starting using ICsurv package for variance estimation ##################################
 	d1<-rep(0, size)
-
 	d2<-rep(0, size)
-
 	d3<-rep(0, size)
-
 	d1[delta1 == 1] <- 1
-
 	d2[delta2 == 1] <- 1
-
 	d3[delta3 == 1] <- 1
 
 	Li <- rep(0, size)
-
 	Ri <- rep(0, size)
-
 	Li[delta1 == 1] <- 0
-
 	Li[delta2 == 1] <- ctu[delta2 == 1]
-
 	Li[delta3 == 1] <- ctv[delta3 == 1]
-
 	Ri[delta1 == 1] <- ctu[delta1 == 1]
-
 	Ri[delta2 == 1] <- ctv[delta2 == 1]
-
 	Ri[delta3 == 1] <- 0
 
 	Xp <- t(z)
 
 	isLi <- t(splineDesign(knots = knotb, x = Li, ord = 4))
-
 	isLi <- apply(isLi, 2, rev)
-
 	isLi <- apply(isLi, 2, cumsum)
-
 	isLi <- apply(isLi, 2 ,rev)
 
 	bLi <- t(isLi[-1,])
-
 	bLi[bLi == 0] <- 10^(-10)
 
 	isRi <- t(splineDesign(knots = knotb, x = Ri, ord = 4))
-
 	isRi <- apply(isRi, 2, rev)
-
 	isRi <- apply(isRi, 2, cumsum)
-
 	isRi <- apply(isRi, 2 ,rev)
 
 	bRi <- t(isRi[-1,])
-
 	bRi[bRi == 0] <- 10^(-10)
 
 	b1 <- etamatrix[(n.spline + 1) : (n.spline + 3), run_index]
@@ -233,23 +193,16 @@ for (run_index in 1 : run)	{
 	g1 <- exp(etamatrix[1 : n.spline, run_index])
 
 	v <- PH.Louis.ICsurv(b1, g1, bLi, bRi, d1, d2, d3, Xp)
-
 	A <- v[1 : n.variable, 1 : n.variable]
-		
 	B <- v[1 : n.variable, (n.variable + 1) : (n.variable + n.spline)]
-
 	C <- v[(n.variable + 1) : (n.variable + n.spline), 1 : n.variable]
-
 	D <- v[(n.variable + 1) : (n.variable + n.spline), (n.variable + 1) : (n.variable + n.spline)]
-					
 	var.b = ginv(A - B %*% ginv(D) %*% C)
 
 	### to avoid diag(fitnaive$var) has negative components, when it is negative let it be 0
 	icsurvdiag <- apply(rbind(diag(var.b), rep(0, n.variable)), 2, max)
-
 	icsurvse[, run_index] <- sqrt(icsurvdiag)
 
-		
 	if ((etamatrix[(n.spline + 1), run_index] + qnorm(0.975, 0, 1) * icsurvse[1, run_index] >= 0)&
 		(etamatrix[(n.spline + 1), run_index] - qnorm(0.975, 0, 1) * icsurvse[1, run_index] <= 0))
 		cover.icsurv1 <- cover.icsurv1 + 1	
@@ -274,12 +227,11 @@ for (run_index in 1 : run)	{
 	loglikefull <- loglike(out$par)
 	 
 	index <- 1
-	  
-	  if (index != 0) {
-		 z <- oldz[-index,]
-		 fixsubx <- matrix(c(0*oldz[index,]), 1, size)
-		 n.total <- n.spline + n.variable -1			 
-	  }	 
+  if (index != 0) {
+	 z <- oldz[-index,]
+	 fixsubx <- matrix(c(0*oldz[index,]), 1, size)
+	 n.total <- n.spline + n.variable -1			 
+  }	 
 
 	out <- optim(par = rep(0, (n.variable + n.spline -1)), fn = loglike, gr = gradient, method = "BFGS", control = list(reltol = 1e-20))
 
@@ -287,12 +239,11 @@ for (run_index in 1 : run)	{
 	loglikepart1 <- loglike(out$par)
 
 	index <- 2
-
-	  if (index != 0) {
-		 z <- oldz[-index,]
-		 fixsubx <- matrix(c(0*oldz[index,]), 1, size)
-		 n.total <- n.spline + n.variable -1			 
-	  }	 
+  if (index != 0) {
+	 z <- oldz[-index,]
+	 fixsubx <- matrix(c(0*oldz[index,]), 1, size)
+	 n.total <- n.spline + n.variable -1			 
+  }	 
 
 	out <- optim(par = rep(0, (n.variable + n.spline -1)), fn = loglike, gr = gradient, method = "BFGS", control = list(reltol = 1e-20))
 
@@ -300,12 +251,11 @@ for (run_index in 1 : run)	{
 	loglikepart2 <- loglike(out$par)
 
 	index <- 3
-	  
-	  if (index != 0) {
-		 z <- oldz[-index,]
-		 fixsubx <- matrix(c(0*oldz[index,]), 1, size)
-		 n.total <- n.spline + n.variable -1			 
-	  }	 
+  if (index != 0) {
+	 z <- oldz[-index,]
+	 fixsubx <- matrix(c(0*oldz[index,]), 1, size)
+	 n.total <- n.spline + n.variable -1			 
+  }	 
 
 	out <- optim(par = rep(0, (n.variable + n.spline -1)), fn = loglike, gr = gradient, method = "BFGS", control = list(reltol = 1e-20))
 
