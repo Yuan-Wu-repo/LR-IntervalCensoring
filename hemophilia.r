@@ -67,6 +67,16 @@ if (index == 0) {
 ############## unconstrained R function for finding optimization point  ######
 out <- optim(par = rep(0, (n.variable + n.spline)), fn = loglike, gr = gradient, method = "BFGS", control = list(reltol = 1e-20))
 betaest <- out$par[(n.spline+1) : (n.spline+n.variable)]
+t.seq <- seq (0,57,1)
+bsp <- t(splineDesign(knots = knotb, x = t.seq, ord = spline.ord))
+### from bspline to ispline  
+pre.isp <- apply(bsp, 2, rev)
+isp <- apply(pre.isp, 2, cumsum)
+isp <- apply(isp, 2 ,rev)
+isp <- isp[-1,]
+
+hazest <- c(matrix(exp(out$par[1 : n.spline]), 1, n.spline) %*% isp)
+surv.um <- exp(-hazest)
 #####################################################################################################
 
 ######################################################################################################		
@@ -90,6 +100,7 @@ pchisq(q = t(betaest) %*% hat_O %*% betaest * size, df = 3, lower.tail = FALSE)
 ###################################################################################################
 #### beta and variance estimation using ICsurv package 
 fitsemi <- PH.ICsurv.EM(d1, d2, d3, Li, Ri, Xp, n.int = n.spline-3, order = spline.ord-1, g0 = rep(1,n.spline), b0 = rep(0,n.variable), t.seq = seq (0,57,1), tol = 0.001)
+surv.ICsurv <- exp(-c(fitsemi$hz))
 
 #### to avoid diag(fitnaive$var) has negative components, when it is negative let it be 0
 diagvar.b <- apply(rbind(diag(fitsemi$var.b), rep(0, n.variable)), 2, max)
@@ -152,4 +163,12 @@ loglikenull <- loglike(out$par)
 ## likelihood ratio test for all variables being 0
 pchisq(q = -2 * (loglikefull - loglikenull), df = 3, lower.tail = FALSE) 
 #######################################################################################
+
+#######################################################################################
+pdf("survHemophilia.pdf")	
+plot(c(-0.2, 60), c(-0.05, 1.05),type = "n", xlab = " ", ylab = " ")
+lines(t.seq, surv.um, lty = 2, col = 2, lwd = 2)
+lines(t.seq, surv.ICsurv, lty = 4, col = 4, lwd = 2)
+legend(30, 0.8, c("True", "UM", "ICsurv"), lty = c(1,2,4), col = c(1,2,4))
+dev.off()
 			
