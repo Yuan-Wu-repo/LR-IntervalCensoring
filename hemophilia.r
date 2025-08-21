@@ -165,10 +165,12 @@ pchisq(q = -2 * (loglikefull - loglikenull), df = 3, lower.tail = FALSE)
 #######################################################################################
 
 #######################################################################################
+#### plotting the baseline survival function 
 pdf("survHemophilia.pdf")	
-plot(c(-0.2, 60), c(-0.05, 1.05),type = "n", xlab = " ", ylab = " ")
+plot(c(-0.2, 60), c(0.85, 1),type = "n", xlab = " ", ylab = " ")
 lines(t.seq, surv.um, lty = 2, col = 2, lwd = 2)
 lines(t.seq, surv.ICsurv, lty = 4, col = 4, lwd = 2)
-legend(30, 0.8, c("True", "UM", "ICsurv"), lty = c(1,2,4), col = c(1,2,4))
+legend(40, 0.95, c("True", "UM", "ICsurv"), lty = c(1,2,4), col = c(1,2,4))
 dev.off()
+#######################################################################################
 			
