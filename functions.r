@@ -269,3 +269,113 @@ get_knots <- function(ctu, ctv, delta1, delta2, delta3)
 	knot
 }
 ############################################################################################
+
+############# EM algorithm function reduced from a function in R library ICsurv ########################
+ICsurv.EM <- function(d1, d2, d3, Li, Ri, Xp, n.int, order, g0, b0, tol, t.seq, equal = TRUE) 
+{
+  P <- length(b0)
+  L <- length(g0)
+  N <- length(d1)
+  Li[d1 == 1] <- Ri[d1 == 1]
+  Ri[d3 == 1] <- Li[d3 == 1]
+  ti <- c(Li[d1 == 0], Ri[d3 == 0])
+  if (equal == TRUE) {
+    ti.max <- max(ti) + 1e-05
+    ti.min <- min(ti) - 1e-05
+    knots <- seq(ti.min, ti.max, length.out = (n.int + 2))
+  }
+  if (equal == FALSE) {
+    id <- seq(0, 1, length.out = (n.int + 2))
+    id <- id[-c(1, (n.int + 2))]
+    ti.max <- max(ti) + 1e-05
+    ti.min <- min(ti) - 1e-05
+    knots <- c(ti.min, quantile(ti, id), ti.max)
+  }
+  bRi <- t(Ispline(x = Ri, order = order, knots = knots))
+  bLi <- t(Ispline(x = Li, order = order, knots = knots))
+  bt <- t(Ispline(x = t.seq, order = order, knots = knots))
+  Q1 <- function(b0, b1, g0, Xp, bRi, bLi, d1, d2, d3, L) {
+    g1 <- rep(-99, L)
+    xb0 <- Xp %*% b0
+    xb1 <- Xp %*% b1
+    dz <- 1 - exp(-(bRi %*% g0) * exp(xb0))
+    dw <- 1 - exp(-(bRi %*% g0 - bLi %*% g0) * exp(xb0))
+    dw[d2 == 0] = 1
+    EZil <- t(t(d1 * bRi) * g0) * as.vector(exp(xb0)/dz)
+    EWil <- t(t(d2 * (bRi - bLi)) * g0) * as.vector(exp(xb0)/dw)
+    num <- EZil + (d2 + d3) * EWil
+    den <- ((d1 + d2) * bRi + d3 * bLi) * as.vector(exp(xb1))
+    g1 <- apply(num, 2, sum)/apply(den, 2, sum)
+    return(g1)
+  }
+  Q2 <- function(b1, b0, g0, Xp, bRi, bLi, d1, d2, d3, L) {
+    xb0 <- Xp %*% b0
+    xb1 <- Xp %*% b1
+    dz <- 1 - exp(-(bRi %*% g0) * exp(xb0))
+    dw <- 1 - exp(-(bRi %*% g0 - bLi %*% g0) * exp(xb0))
+    dw[d2 == 0] = 1
+    EZi <- d1 * (bRi %*% g0) * exp(xb0)/dz
+    EWi <- d2 * (bRi %*% g0 - bLi %*% g0) * exp(Xp %*% b0)/dw
+    p1 <- sum((EZi + EWi) * (Xp %*% b1))
+    EZil <- t(t(d1 * bRi) * g0) * as.vector(exp(xb0)/dz)
+    EWil <- t(t(d2 * (bRi - bLi)) * g0) * as.vector(exp(xb0)/dw)
+    num <- EZil + (d2 + d3) * EWil
+    den <- ((d1 + d2) * bRi + d3 * bLi) * as.vector(exp(xb1))
+    g1 <- apply(num, 2, sum)/apply(den, 2, sum)
+    p2 <- sum(t(EZil) * log(g1) + t(EWil) * log(g1))
+    p3 <- sum(((d1 + d2) * (bRi %*% g1) + d3 * (bLi %*% g1)) * 
+                exp(xb1))
+    res <- -(p1 + p2 - p3)
+    return(res)
+  }
+  b1 <- optim(b0, Q2, method = "Nelder-Mead", b0 = b0, g0 = g0, 
+              Xp = Xp, bRi = bRi, bLi = bLi, d1 = d1, d2 = d2, d3 = d3, 
+              L = L)$par
+  g1 <- Q1(b0, b1, g0, Xp, bRi, bLi, d1, d2, d3, L)
+  while (max(abs(c(b0, g0) - c(b1, g1))) > tol) {
+    b0 <- b1
+    g0 <- g1
+    b1 <- optim(b0, Q2, method = "Nelder-Mead", b0 = b0, 
+                g0 = g0, Xp = Xp, bRi = bRi, bLi = bLi, d1 = d1, 
+                d2 = d2, d3 = d3, L = L)$par
+    g1 <- Q1(b0, b1, g0, Xp, bRi, bLi, d1, d2, d3, L)
+  }
+  hz <- bt %*% g1
+  return(list(b = b1, g = g1, hz = hz))
+}
+###########################################################################################
+
+################### variance estimation function in R library ICsurv ########################
+fast.PH.Louis.ICsurv <- function(b, g, bLi, bRi, d1, d2, d3, Xp) 
+{
+  xb <- Xp %*% b
+  A <- -t(as.vector(((d1 + d2) * bRi %*% g + d3 * bLi %*% g) * 
+                      exp(xb)) * Xp) %*% Xp
+  B <- -t(((d1 + d2) * bRi + d3 * bLi) * as.vector(exp(xb))) %*% 
+    Xp
+  C <- matrix(0, length(g), length(g))
+  D <- rbind(cbind(A, t(B)), cbind(B, C))
+  ci <- 1 - exp(-(bRi %*% g) * exp(xb))
+  di <- 1 - exp(-(bRi %*% g - bLi %*% g) * exp(xb))
+  di[d2 == 0] = 1
+  hi <- d1 * (bRi %*% g) * exp(xb)
+  ti <- d2 * (bRi %*% g - bLi %*% g) * exp(xb)
+  VZi <- (hi^2/ci) * (1 - 1/ci) + hi/ci
+  VWi <- (ti^2/di) * (1 - 1/di) + ti/di
+  E <- t(as.vector((VZi + (d2 + d3) * VWi)) * Xp) %*% Xp
+  zpil <- t(t(bRi) * g)/as.vector(bRi %*% g)
+  num <- (bRi %*% g - bLi %*% g)
+  num[d2 == 0] <- 1
+  wpil <- t(t(bRi - bLi) * g)/as.vector(num)
+  CovZilZi <- zpil * as.vector((hi/ci) * (1 + hi - hi/ci))
+  CovWilWi <- wpil * as.vector((ti/di) * (1 + ti - ti/di))
+  F <- t(CovZilZi + (d2 + d3) * CovWilWi) %*% Xp/g
+  Covz <- t(zpil * as.vector((hi^2/ci) * (1 - 1/ci))) %*% zpil
+  Covw <- t(wpil * as.vector((d2 + d3) * (ti^2/di) * (1 - 1/di))) %*% 
+    wpil
+  G <- t((Covz + Covw)/g)/g
+  H <- rbind(cbind(E, t(F)), cbind(F, G))
+  hess <- -(D + H)
+  return(hess)
+}
+
