@@ -80,7 +80,7 @@ for (run_index in 1 : run)	{
   
   t0 <- proc.time() 
   
-  #### start proposed unconstrained maximization method #############
+  ####################### start proposed unconstrained maximization method ####################
   knotb <- get_knots(ctu, ctv, delta1, delta2, delta3)
   
   ### bspline results		 
@@ -159,14 +159,12 @@ for (run_index in 1 : run)	{
   fitsemi <- ICsurv.EM(d1, d2, d3, Li, Ri, Xp, n.int = n.spline-3, order = spline.ord-1, g0 = rep(1,n.spline), b0 = rep(0,n.variable), t.seq = seq(0.1, 4.7, 0.1), tol = 0.001)
   
   survmatrix.ICsurv[,run_index] <- exp(-c(fitsemi$hz))
-  
   ICsurvmatrix[,run_index]<-fitsemi$b		
   
   # processing time for the ICsurv EM algorithm 
   pt2 <- proc.time() - t0
   sumpt2 <- sumpt2 + pt2
   #####################################################
-  
 }
 
 etamean <- rowMeans(etamatrix)
