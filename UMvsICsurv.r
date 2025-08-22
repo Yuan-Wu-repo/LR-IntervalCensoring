@@ -7,7 +7,7 @@ library(ICsurv)
 source("functions.R")
 
 n.variable <- 3
-size <- 200
+size <- 500
 n.spline <- floor(size^(1/3)) + 3
 run <- 100
 lambda<- 1
@@ -115,7 +115,6 @@ for (run_index in 1 : run)	{
   }	 
   
   ############## unconstrained R function for finding minimum point ##########
-  
   out <- optim(par = rep(0, (n.variable + n.spline)), fn = loglike, gr = gradient, method = "BFGS", control = list(reltol = 1e-20))
   
   ### cumulative hazard estimation
@@ -134,24 +133,20 @@ for (run_index in 1 : run)	{
   #processing time for the proposed unconstrained optimization 
   pt1 <- proc.time() - t0
   sumpt1 <- sumpt1 + pt1
-  
   #############################################################################
   
   ######### estimation using ICsurv package ######################
-  
   t0 <- proc.time()
   
   d1<-rep(0, size)
   d2<-rep(0, size)
   d3<-rep(0, size)
-  
   d1[delta1 == 1] <- 1
   d2[delta2 == 1] <- 1
   d3[delta3 == 1] <- 1
-  
+
   Li <- rep(0, size)
   Ri <- rep(0, size)
-  
   Li[delta1 == 1] <- 0
   Li[delta2 == 1] <- ctu[delta2 == 1]
   Li[delta3 == 1] <- ctv[delta3 == 1]
@@ -161,7 +156,7 @@ for (run_index in 1 : run)	{
   
   Xp <- t(z)	
   
-  fitsemi <- fast.PH.ICsurv.EM(d1, d2, d3, Li, Ri, Xp, n.int = n.spline-3, order = spline.ord-1, g0 = rep(1,n.spline), b0 = rep(0,n.variable), t.seq = seq(0.1, 4.7, 0.1), tol = 0.001)
+  fitsemi <- ICsurv.EM(d1, d2, d3, Li, Ri, Xp, n.int = n.spline-3, order = spline.ord-1, g0 = rep(1,n.spline), b0 = rep(0,n.variable), t.seq = seq(0.1, 4.7, 0.1), tol = 0.001)
   
   survmatrix.ICsurv[,run_index] <- exp(-c(fitsemi$hz))
   
