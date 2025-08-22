@@ -80,7 +80,7 @@ for (run_index in 1 : run)	{
   
   t0 <- proc.time() 
   
-  #### start sieve interval censoring method #############
+  #### start proposed unconstrained maximization method #############
   knotb <- get_knots(ctu, ctv, delta1, delta2, delta3)
   
   ### bspline results		 
