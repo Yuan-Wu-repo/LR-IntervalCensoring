@@ -4,7 +4,7 @@ library(splines)
 library(survival)
 library(ICsurv)
 
-source("C:/Users/yw115/Desktop/R21_paper/code/functions.R")
+source("functions.R")
 
 n.variable <- 3
 size <- 200
@@ -161,7 +161,7 @@ for (run_index in 1 : run)	{
   
   Xp <- t(z)	
   
-  fitsemi <- PH.ICsurv.EM(d1, d2, d3, Li, Ri, Xp, n.int = n.spline-3, order = spline.ord-1, g0 = rep(1,n.spline), b0 = rep(0,n.variable), t.seq = seq(0.1, 4.7, 0.1), tol = 0.001)
+  fitsemi <- fast.PH.ICsurv.EM(d1, d2, d3, Li, Ri, Xp, n.int = n.spline-3, order = spline.ord-1, g0 = rep(1,n.spline), b0 = rep(0,n.variable), t.seq = seq(0.1, 4.7, 0.1), tol = 0.001)
   
   survmatrix.ICsurv[,run_index] <- exp(-c(fitsemi$hz))
   
