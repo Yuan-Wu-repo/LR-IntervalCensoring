@@ -7,8 +7,8 @@ library(ICsurv)
 source("functions.R")
 
 n.variable <- 3
-size <- 50
-n.spline <- 6
+size <- 200
+n.spline <- floor(size^(1/3)) + 3
 run <- 100
 lambda<- 1
 spline.ord <- 4
@@ -43,7 +43,7 @@ for (run_index in 1 : run)	{
 	z3<-rbinom(size,1,0.5)
 	z<-rbind(z1,z2,z3)
 	
-	beta0<-matrix(c(-1, 0.5, 1.5), n.variable, 1)
+	beta0<-matrix(c(0, 0, 0), n.variable, 1)
 
 	u<-runif(size, 0 ,1)
 
@@ -91,7 +91,7 @@ for (run_index in 1 : run)	{
 	knotb <- get_knots(ctu, ctv, delta1, delta2, delta3)
 
 	### bspline results		 
-	bspu <- t(splineDesign(knots = knotb, x = ctu, ord = 4))
+	bspu <- t(splineDesign(knots = knotb, x = ctu, ord = spline.ord))
 	### from bspline to ispline  
 	pre.ispu <- apply(bspu, 2, rev)
 	ispu <- apply(pre.ispu, 2, cumsum)
@@ -99,7 +99,7 @@ for (run_index in 1 : run)	{
 	ispu <- ispu[-1,]
 
 	### bspline results
-	bspv <- t(splineDesign(knots = knotb, x = ctv, ord = 4))
+	bspv <- t(splineDesign(knots = knotb, x = ctv, ord = spline.ord))
 	### from bspline to ispline  
 	pre.ispv <- apply(bspv, 2, rev)
 	ispv <- apply(pre.ispv, 2, cumsum)
@@ -172,7 +172,7 @@ for (run_index in 1 : run)	{
 
 	Xp <- t(z)
 
-	isLi <- t(splineDesign(knots = knotb, x = Li, ord = 4))
+	isLi <- t(splineDesign(knots = knotb, x = Li, ord = spline.ord))
 	isLi <- apply(isLi, 2, rev)
 	isLi <- apply(isLi, 2, cumsum)
 	isLi <- apply(isLi, 2 ,rev)
@@ -180,7 +180,7 @@ for (run_index in 1 : run)	{
 	bLi <- t(isLi[-1,])
 	bLi[bLi == 0] <- 10^(-10)
 
-	isRi <- t(splineDesign(knots = knotb, x = Ri, ord = 4))
+	isRi <- t(splineDesign(knots = knotb, x = Ri, ord = spline.ord))
 	isRi <- apply(isRi, 2, rev)
 	isRi <- apply(isRi, 2, cumsum)
 	isRi <- apply(isRi, 2 ,rev)

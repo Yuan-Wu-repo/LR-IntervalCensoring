@@ -4,11 +4,11 @@ library(splines)
 library(survival)
 library(ICsurv)
 
-source("functions.R")
+source("C:/Users/yw115/Desktop/R21_paper/code/functions.R")
 
 n.variable <- 3
 size <- 200
-n.spline <- 8
+n.spline <- floor(size^(1/3)) + 3
 run <- 100
 lambda<- 1
 spline.ord <- 4
@@ -84,7 +84,7 @@ for (run_index in 1 : run)	{
   knotb <- get_knots(ctu, ctv, delta1, delta2, delta3)
   
   ### bspline results		 
-  bspu <- t(splineDesign(knots = knotb, x = ctu, ord = 4))
+  bspu <- t(splineDesign(knots = knotb, x = ctu, ord = spline.ord))
   ### from bspline to ispline  
   pre.ispu <- apply(bspu, 2, rev)
   
@@ -93,7 +93,7 @@ for (run_index in 1 : run)	{
   ispu <- ispu[-1,]
   
   ### bspline results
-  bspv <- t(splineDesign(knots = knotb, x = ctv, ord = 4))
+  bspv <- t(splineDesign(knots = knotb, x = ctv, ord = spline.ord))
   ### from bspline to ispline  
   pre.ispv <- apply(bspv, 2, rev)
   
@@ -119,7 +119,7 @@ for (run_index in 1 : run)	{
   out <- optim(par = rep(0, (n.variable + n.spline)), fn = loglike, gr = gradient, method = "BFGS", control = list(reltol = 1e-20))
   
   ### cumulative hazard estimation
-  bsp <- t(splineDesign(knots = knotb, x = t.seq, ord = spline.ord))
+  bsp <- t(splineDesign(knots = knotb, x = t.seq, ord = spline.ord, outer.ok = TRUE))
   ### from bspline to ispline  
   pre.isp <- apply(bsp, 2, rev)
   isp <- apply(pre.isp, 2, cumsum)

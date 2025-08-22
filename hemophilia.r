@@ -30,7 +30,7 @@ Ri <- Hemophilia$R
 Xp <- cbind(Hemophilia$Low, Hemophilia$Medium, Hemophilia$High)
 
 n.variable <- 3
-n.spline <- 11
+n.spline <- floor(size^(1/3)) + 3
 spline.ord <- 4
 
 ###############################################################################################
@@ -99,7 +99,7 @@ pchisq(q = t(betaest) %*% hat_O %*% betaest * size, df = 3, lower.tail = FALSE)
 
 ###################################################################################################
 #### beta and variance estimation using ICsurv package 
-fitsemi <- PH.ICsurv.EM(d1, d2, d3, Li, Ri, Xp, n.int = n.spline-3, order = spline.ord-1, g0 = rep(1,n.spline), b0 = rep(0,n.variable), t.seq = seq (0,57,1), tol = 0.001)
+fitsemi <- fast.PH.ICsurv.EM(d1, d2, d3, Li, Ri, Xp, n.int = n.spline-3, order = spline.ord-1, g0 = rep(1,n.spline), b0 = rep(0,n.variable), t.seq = seq (0,57,1), tol = 0.001)
 surv.ICsurv <- exp(-c(fitsemi$hz))
 
 #### to avoid diag(fitnaive$var) has negative components, when it is negative let it be 0
