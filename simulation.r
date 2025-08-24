@@ -12,9 +12,8 @@ n.spline <- floor(size^(1/3)) + 3
 run <- 100
 lambda<- 1
 spline.ord <- 4
-spline.degree <- 3
 
-knotmatrix<-matrix(0,(n.spline + spline.degree),run)
+knotmatrix<-matrix(0,(n.spline + spline.ord - 1 ),run)
 etamatrix <- matrix(0,(n.variable+n.spline),run)
 sematrix <- matrix(0, n.variable, run)
 icsurvse <- matrix(0, n.variable, run)
@@ -59,34 +58,37 @@ for (run_index in 1 : run)	{
 	ctv <- rep(0 ,size)
 
 	for (ind in 1 : size) {
-    preuv <- rexp(2, 0.5)
-    if (t[ind] <= 5)
-    {
-    	if (t[ind] <= min(preuv)) {
-    		delta1[ind] <- 1
-    		ctu[ind] <- min(min(preuv), 5)
-    		ctv[ind] <- ctu[ind] + 10^(-8)
-    	} else {
-    		if (t[ind] > min(preuv) & t[ind] <= max(preuv)) {
-    		delta2[ind] <- 1
-    		ctu[ind] <- max(preuv[preuv < t[ind]])
-    		ctv[ind] <- min(min(preuv[preuv >= t[ind]]), 5)
-    		} else {										
-    			if (t[ind] > max(preuv)) {
-    				delta3[ind] <- 1
-    				ctv[ind] <- max(preuv)
-    				ctu[ind] <- ctv[ind] - 10^(-8)
-    			}
-    		}			
-    	}	
-    } else {
-    	delta3[ind] <- 1
-    	ctv[ind] <- min(max(preuv), 5)
-    	ctu[ind] <- ctv[ind] - 10^(-8)
-    }	
-
+		preuv <- rexp(2, 0.5)
+		if (t[ind] < 5) {
+			if (t[ind] <= min(preuv)) {
+				delta1[ind] <- 1
+				ctu[ind] <- min(min(preuv), 5)
+				ctv[ind] <- 0
+			} else {
+				if (t[ind] > min(preuv) & t[ind] <= max(preuv)) {
+					delta2[ind] <- 1
+					ctu[ind] <- max(preuv[preuv < t[ind]])
+					ctv[ind] <- min(min(preuv[preuv >= t[ind]]), 5)
+					if (ctv[ind] - ctu[ind] < 0.05) {
+						if (ctv[ind] > 0.05)
+							ctu[ind] <- ctv[ind] - 0.05
+						else 
+							ctv[ind] <- ctv[ind] + 0.05
+					}					
+				} else {										
+					if (t[ind] > max(preuv)) {
+						delta3[ind] <- 1
+						ctv[ind] <- max(preuv)
+						ctu[ind] <- 0
+					}
+				}			
+			}	
+		} else {
+			delta3[ind] <- 1
+			ctv[ind] <- min(max(preuv), 5)
+			ctu[ind] <- 0 
+		}	
 	}	
-
 	#### start sieve interval censoring method #############
 	knotb <- get_knots(ctu, ctv, delta1, delta2, delta3)
 
@@ -188,11 +190,11 @@ for (run_index in 1 : run)	{
 	bRi <- t(isRi[-1,])
 	bRi[bRi == 0] <- 10^(-10)
 
-	b1 <- etamatrix[(n.spline + 1) : (n.spline + 3), run_index]
+	b1 <- etamatrix[(n.spline + 1) : (n.spline + n.variable), run_index]
 
 	g1 <- exp(etamatrix[1 : n.spline, run_index])
 
-	v <- PH.Louis.ICsurv(b1, g1, bLi, bRi, d1, d2, d3, Xp)
+	v <- fast.PH.Louis.ICsurv(b1, g1, bLi, bRi, d1, d2, d3, Xp)
 	A <- v[1 : n.variable, 1 : n.variable]
 	B <- v[1 : n.variable, (n.variable + 1) : (n.variable + n.spline)]
 	C <- v[(n.variable + 1) : (n.variable + n.spline), 1 : n.variable]
