@@ -170,7 +170,7 @@ pdf("survHemophilia.pdf")
 plot(c(-0.2, 60), c(0.85, 1),type = "n", xlab = " ", ylab = " ")
 lines(t.seq, surv.um, lty = 2, col = 2, lwd = 2)
 lines(t.seq, surv.ICsurv, lty = 4, col = 4, lwd = 2)
-legend(40, 0.95, c("True", "UM", "ICsurv"), lty = c(1,2,4), col = c(1,2,4))
+legend(40, 0.95, c("UM", "EM"), lty = c(2,4), col = c(2,4))
 dev.off()
 #######################################################################################
 			
