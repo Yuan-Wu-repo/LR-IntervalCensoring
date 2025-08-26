@@ -1,17 +1,22 @@
-This project comprehensively studies the analysis of the interval-censored data under the <b>Cox proportional hazards model</b>. 
+# Interval-Censored Data Analysis under the Cox Proportional Hazards Model
 
+This project provides a comprehensive study of **interval-censored data analysis under the Cox proportional hazards model**.
 
-The following tasks are facilitated by the functions included in <b>functions.r</b>.
+## Functions
 
-- Estimating the <b>sieve spline-based MLE</b> of the Cox regression parameters and the hazard function
+The functions in **`functions.r`** support the following tasks:
 
-- Estimating the variance of the sieve MLE of the Cox regression parameters using two existing approaches
+- Estimating the **sieve spline-based maximum likelihood estimator (MLE)** of the Cox regression parameters and the hazard function.  
+- Estimating the variance of the sieve MLE of the Cox regression parameters using two established methods.  
+- Generating knot sequences for **B-splines or I-splines**.  
 
-- Generating the knot sequence for <b>B-splines (or I-splines)</b>
+## Scripts
 
+### `simulation.r`
+Compares **our proposed likelihood ratio (LR) testing approach** with existing **Wald testing approaches**.  
 
-The script <b>simulaiton.r</b> aims to compare <b>our proposed likelihood ratio (LR) testing approach</b> and the existing <b>Wald testing approaches</b>. 
+### `hemophilia.r`
+Applies different testing approaches to analyze a publicly available dataset.  
 
-The script <b>hemophilia.r</b> applies different testing approaches analyzing this public available data set.
-
-The script <b>UMvsICsurv.r</b> compares the computing time and estimation bias between <b>the proposed unconstrained maximization (UM)</b> and <b>the EM algorithm adopted in ICsurv package</b>.
+### `UMvsICsurv.r`
+Compares computing time and estimation bias between **the proposed unconstrained maximization (UM)** method and **the EM algorithm implemented in the ICsurv package**.
