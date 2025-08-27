@@ -19,4 +19,4 @@ Compares **our proposed likelihood ratio (LR) testing approach** with existing *
 Applies different testing approaches to analyze a publicly available dataset.  
 
 ### `UMvsICsurv.r`
-Compares computing time and estimation bias between **the proposed unconstrained maximization (UM)** method and **the EM algorithm implemented in the R library ICsurv (EM)**.
+Compares computing time and estimation bias between **the proposed unconstrained maximization (UM)** method and **the EM algorithm implemented in the R package ICsurv (EM)**.
