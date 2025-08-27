@@ -13,10 +13,10 @@ The functions in **`functions.r`** support the following tasks:
 ## Scripts
 
 ### `simulation.r`
-Compares **our proposed likelihood ratio (LR) testing approach** with existing **Wald testing approaches**.  
+Compares **our proposed likelihood ratio testing approach** with existing **Wald testing approaches**.  
 
 ### `hemophilia.r`
 Applies different testing approaches to analyze a publicly available dataset.  
 
 ### `UMvsICsurv.r`
-Compares computing time and estimation bias between **the proposed unconstrained maximization (UM)** method and **the EM algorithm implemented in the R package ICsurv (EM)**.
+Compares computing time and estimation bias between **the proposed unconstrained maximization** method and **the EM algorithm implemented in the R package ICsurv**.
