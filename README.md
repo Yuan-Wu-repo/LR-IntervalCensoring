@@ -18,5 +18,5 @@ Compares **our proposed likelihood ratio testing approach** with existing **Wald
 ### `hemophilia.r`
 Applies different testing approaches to analyze a publicly available dataset.  
 
-### `UMvsICsurv.r`
-Compares computing time and estimation bias between **the proposed unconstrained maximization** method and **the EM algorithm implemented in the R package ICsurv**.
+### `UMvsEM.r`
+Compares computing time and estimation bias between **the proposed unconstrained maximization (UM)** method and **the EM algorithm implemented in the R package ICsurv**.
